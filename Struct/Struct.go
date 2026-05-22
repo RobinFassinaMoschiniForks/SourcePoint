@@ -1351,6 +1351,8 @@ stage {
 	set rdll_use_syscalls "{{.Variables.rdll_use_syscalls}}";
 	set copy_pe_header "{{.Variables.copy_pe_header}}";
 	set rdll_loader "{{.Variables.rdll_loader}}";
+	set rdll_use_driploading "{{.Variables.rdll_use_driploading}}";
+	set rdll_dripload_delay "{{.Variables.rdll_dripload_delay}}";
 	{{.Variables.transform_obfuscate}}
 	`
 }
@@ -1589,6 +1591,8 @@ process-inject {
     set min_alloc "{{.Variables.processinject_min_alloc}}";
     set userwx    "false";
     set startrwx "true";
+	set use_driploading "{{.Variables.use_driploading}}";
+	set dripload_delay "{{.Variables.dripload_delay}}";
 	
     transform-x86 {
         prepend "\x90\x90\x90\x90\x90\x90\x90\x90\x90"; # NOP, NOP!

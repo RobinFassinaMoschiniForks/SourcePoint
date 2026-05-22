@@ -157,6 +157,14 @@ Usage of ./SourcePoint:
         The maximum size (in bytes) of proxy data to transfer via the communication channel at a check in
   -ThreadSpoof
         Sets post-ex DLLs to spawn threads with a spoofed start address. These are generated randomly (default true)
+  -RdllUseDriploading
+        Enable driploading for RDLL stage (gradually loads beacon in smaller chunks to evade memory scanners) (default true)
+  -RdllDriploadDelay string
+        Delay in milliseconds between loading chunks for RDLL driploading (default: random 100-200ms)
+  -UseDriploading
+        Enable driploading for process injection (gradually writes payload in smaller chunks to evade EDR) (default true)
+  -DriploadDelay string
+        Delay in milliseconds between writing chunks for process injection driploading (default: random 100-200ms)
   -Uri string
         The number URIs a profile for beacons to choose from
   -Useragent string
@@ -210,7 +218,8 @@ This part of your profile controls how beacon is loaded into memory and edit the
 * Smart Inject - Uses embedded function pointer hints to bootstrap the beacon agent without walking kernel32 EAT
 * Sleep Mask - TCP and SMB beacons will obfuscate themselves at rest while they wait for the connection to be established
 * PE Header - Changes the characteristics of your beacon Reflective DLL to look like something else in memory
-* Transformation - Transform beacon's Reflective DLL stage by removing or adding strings to the .rdata 
+* Transformation - Transform beacon's Reflective DLL stage by removing or adding strings to the .rdata
+* RDLL Driploading - Gradually loads the beacon RDLL in smaller chunks with configurable delays to evade memory-based detection (default: enabled with random 100-200ms delay) 
 
 
 ### Process-Inject
@@ -222,6 +231,7 @@ This part of your profile controls how the beacon shapes injected content and co
 * Startrwx - Use Read, Write Execute as initial permissions for injected content (The alternative is RW)
 * Transformer - Adds a block of padding content injected by the beacon
 * Execute - This section determines how to execute the injected code
+* Driploading - Gradually writes the payload in smaller chunks with configurable delays to evade EDR memory scanning during injection (default: enabled with random 100-200ms delay)
 
 ### Post-Exec
 This part of your profile controls how the beacon handles post-exploitation modules and commands. Some of the features used to modify the behaviour are:
@@ -294,7 +304,11 @@ CustomuriPOST:
 Forwarder: False
 TasksMaxSize: 
 TasksProxyMaxSize:
-TasksDnsProxyMaxSize: 
+TasksDnsProxyMaxSize:
+RdllUseDriploading: true
+RdllDriploadDelay: "" # Leave empty for random 100-200ms delay
+UseDriploading: true
+DriploadDelay: "" # Leave empty for random 100-200ms delay
 ```
 
 

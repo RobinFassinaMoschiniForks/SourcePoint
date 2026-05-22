@@ -38,4 +38,8 @@ TransformObfuscate: "lznt1,xor \"32\""
 SmartInject: False
 BeaconGate: "All"
 SleepMask: False
+RdllUseDriploading: true
+RdllDriploadDelay: "" # Leave empty for random 100-200ms delay
+UseDriploading: true
+DriploadDelay: "" # Leave empty for random 100-200ms delay
 
