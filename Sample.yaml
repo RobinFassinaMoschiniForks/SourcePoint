@@ -42,4 +42,7 @@ RdllUseDriploading: true
 RdllDriploadDelay: "" # Leave empty for random 100-200ms delay
 UseDriploading: true
 DriploadDelay: "" # Leave empty for random 100-200ms delay
+CheckinDelay: "" # ms; leave empty to omit (CS 4.13+)
+ClientMaxPostPostSize: "" # bytes; leave empty to omit (CS 4.13+ DLP bypass)
+ClientMaxPostGetSize: "" # bytes; leave empty to omit (CS 4.13+ DLP bypass)
 

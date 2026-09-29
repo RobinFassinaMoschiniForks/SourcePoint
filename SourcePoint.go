@@ -55,6 +55,9 @@ type FlagOptions struct {
 	rdll_dripload_delay      string
 	use_driploading          bool
 	dripload_delay           string
+	checkin_delay            string
+	client_max_post_post_size string
+	client_max_post_get_size string
 }
 
 type conf struct {
@@ -101,6 +104,9 @@ type conf struct {
 	RdllDriploadDelay    string `yaml:"RdllDriploadDelay"`
 	UseDriploading       bool   `yaml:"UseDriploading"`
 	DriploadDelay        string `yaml:"DriploadDelay"`
+	CheckinDelay         string `yaml:"CheckinDelay"`
+	ClientMaxPostPostSize string `yaml:"ClientMaxPostPostSize"`
+	ClientMaxPostGetSize string `yaml:"ClientMaxPostGetSize"`
 }
 
 func (c *conf) getConf(yamlfile string) *conf {
@@ -125,6 +131,7 @@ func options() *FlagOptions {
 [*] Win10Chrome
 [*] Win10Edge
 [*] Win10IE
+[*] Win10Firefox
 [*] Win10
 [*] Win6.3
 [*] Linux
@@ -170,7 +177,7 @@ func options() *FlagOptions {
 [2] WWAHost.exe
 [3] choice.exe
 [4] bootcfg.exe
-[5] dtdump.exe
+[5] w32tm.exe
 [6] expand.exe
 [7] fsutil.exe
 [8] gpupdate.exe
@@ -239,8 +246,11 @@ Example: "lznt1,rc4 \"64\",xor \"32\",base64"`)
 	rdll_dripload_delay := flag.String("RdllDriploadDelay", "", "Delay in milliseconds between loading chunks for RDLL driploading (default: random 100-200ms)")
 	use_driploading := flag.Bool("UseDriploading", true, "Enable driploading for process injection (gradually writes payload in smaller chunks to evade EDR)")
 	dripload_delay := flag.String("DriploadDelay", "", "Delay in milliseconds between writing chunks for process injection driploading (default: random 100-200ms)")
+	checkin_delay := flag.String("CheckinDelay", "", "Delay in milliseconds before Beacon's initial check-in (CS 4.13+ - breaks event correlation on reflective load)")
+	client_max_post_post_size := flag.String("ClientMaxPostPostSize", "", "Maximum size in bytes of POST body (CS 4.13+ - bypass DLP solutions)")
+	client_max_post_get_size := flag.String("ClientMaxPostGetSize", "", "Maximum size in bytes of chunked data when posting via a GET header (CS 4.13+ - bypass DLP solutions)")
 	flag.Parse()
-	return &FlagOptions{stage: *stage, sleeptime: *sleeptime, jitter: *jitter, useragent: *useragent, uri: *uri, customuri: *customuri, customuriGET: *customuriGET, customuriPOST: *customuriPOST, beacon_PE: *beacon_PE, processinject_min_alloc: *processinject_min_alloc, Post_EX_Process_Name: *Post_EX_Process_Name, metadata: *metadata, injector: *injector, Host: *Host, Profile: *Profile, ProfilePath: *ProfilePath, outFile: *outFile, custom_cert: *custom_cert, cert_password: *cert_password, CDN: *CDN, CDN_Value: *CDN_Value, Yaml: *Yaml, Datajitter: *Datajitter, Keylogger: *Keylogger, Forwarder: *Forwarder, tasks_max_size: *tasks_max_size, tasks_proxy_max_size: *tasks_proxy_max_size, tasks_dns_proxy_max_size: *tasks_dns_proxy_max_size, syscall_method: *syscall_method, httplib: *httplib, threadspoof: *threadspoof, beacongate: *beacongate, eaf_bypass: *eaf_bypass, rdll_use_syscalls: *rdll_use_syscalls, copy_pe_header: *copy_pe_header, rdll_loader: *rdll_loader, transform_obfuscate: *transform_obfuscate, smartinject: *smartinject, sleep_mask: *sleep_mask, rdll_use_driploading: *rdll_use_driploading, rdll_dripload_delay: *rdll_dripload_delay, use_driploading: *use_driploading, dripload_delay: *dripload_delay}
+	return &FlagOptions{stage: *stage, sleeptime: *sleeptime, jitter: *jitter, useragent: *useragent, uri: *uri, customuri: *customuri, customuriGET: *customuriGET, customuriPOST: *customuriPOST, beacon_PE: *beacon_PE, processinject_min_alloc: *processinject_min_alloc, Post_EX_Process_Name: *Post_EX_Process_Name, metadata: *metadata, injector: *injector, Host: *Host, Profile: *Profile, ProfilePath: *ProfilePath, outFile: *outFile, custom_cert: *custom_cert, cert_password: *cert_password, CDN: *CDN, CDN_Value: *CDN_Value, Yaml: *Yaml, Datajitter: *Datajitter, Keylogger: *Keylogger, Forwarder: *Forwarder, tasks_max_size: *tasks_max_size, tasks_proxy_max_size: *tasks_proxy_max_size, tasks_dns_proxy_max_size: *tasks_dns_proxy_max_size, syscall_method: *syscall_method, httplib: *httplib, threadspoof: *threadspoof, beacongate: *beacongate, eaf_bypass: *eaf_bypass, rdll_use_syscalls: *rdll_use_syscalls, copy_pe_header: *copy_pe_header, rdll_loader: *rdll_loader, transform_obfuscate: *transform_obfuscate, smartinject: *smartinject, sleep_mask: *sleep_mask, rdll_use_driploading: *rdll_use_driploading, rdll_dripload_delay: *rdll_dripload_delay, use_driploading: *use_driploading, dripload_delay: *dripload_delay, checkin_delay: *checkin_delay, client_max_post_post_size: *client_max_post_post_size, client_max_post_get_size: *client_max_post_get_size}
 
 }
 
@@ -299,6 +309,9 @@ func main() {
 		opt.rdll_dripload_delay = c.RdllDriploadDelay
 		opt.use_driploading = c.UseDriploading
 		opt.dripload_delay = c.DriploadDelay
+		opt.checkin_delay = c.CheckinDelay
+		opt.client_max_post_post_size = c.ClientMaxPostPostSize
+		opt.client_max_post_get_size = c.ClientMaxPostGetSize
 	}
 
 	if opt.outFile == "" {
@@ -313,6 +326,5 @@ func main() {
 	if (opt.customuriGET != "" && opt.customuriPOST == "") || (opt.customuriGET == "" && opt.customuriPOST != "") {
 		log.Fatal("Error: When using CustomuriGET/CustomuriPOST, both must be sepecified")
 	}
-	fmt.Println(c.TasksMaxSize)
-	Loader.GenerateOptions(opt.stage, opt.sleeptime, opt.jitter, opt.useragent, opt.uri, opt.customuri, opt.customuriGET, opt.customuriPOST, opt.beacon_PE, opt.processinject_min_alloc, opt.Post_EX_Process_Name, opt.metadata, opt.injector, opt.Host, opt.Profile, opt.ProfilePath, opt.outFile, opt.custom_cert, opt.cert_password, opt.CDN, opt.CDN_Value, opt.Datajitter, opt.Keylogger, opt.Forwarder, opt.tasks_max_size, opt.tasks_proxy_max_size, opt.tasks_dns_proxy_max_size, opt.syscall_method, opt.httplib, opt.threadspoof, opt.beacongate, opt.eaf_bypass, opt.rdll_use_syscalls, opt.copy_pe_header, opt.rdll_loader, opt.transform_obfuscate, opt.smartinject, opt.sleep_mask, opt.rdll_use_driploading, opt.rdll_dripload_delay, opt.use_driploading, opt.dripload_delay)
+	Loader.GenerateOptions(opt.stage, opt.sleeptime, opt.jitter, opt.useragent, opt.uri, opt.customuri, opt.customuriGET, opt.customuriPOST, opt.beacon_PE, opt.processinject_min_alloc, opt.Post_EX_Process_Name, opt.metadata, opt.injector, opt.Host, opt.Profile, opt.ProfilePath, opt.outFile, opt.custom_cert, opt.cert_password, opt.CDN, opt.CDN_Value, opt.Datajitter, opt.Keylogger, opt.Forwarder, opt.tasks_max_size, opt.tasks_proxy_max_size, opt.tasks_dns_proxy_max_size, opt.syscall_method, opt.httplib, opt.threadspoof, opt.beacongate, opt.eaf_bypass, opt.rdll_use_syscalls, opt.copy_pe_header, opt.rdll_loader, opt.transform_obfuscate, opt.smartinject, opt.sleep_mask, opt.rdll_use_driploading, opt.rdll_dripload_delay, opt.use_driploading, opt.dripload_delay, opt.checkin_delay, opt.client_max_post_post_size, opt.client_max_post_get_size)
 }

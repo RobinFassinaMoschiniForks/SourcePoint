@@ -117,7 +117,7 @@ Usage of ./SourcePoint:
         [2] WWAHost.exe
         [3] choice.exe
         [4] bootcfg.exe
-        [5] dtdump.exe
+        [5] w32tm.exe
         [6] expand.exe
         [7] fsutil.exe
         [8] gpupdate.exe
@@ -165,6 +165,33 @@ Usage of ./SourcePoint:
         Enable driploading for process injection (gradually writes payload in smaller chunks to evade EDR) (default true)
   -DriploadDelay string
         Delay in milliseconds between writing chunks for process injection driploading (default: random 100-200ms)
+  -CopyPEHeader
+        Copy PE Header to match cloned DLL characteristics (default false)
+  -EafBypass
+        Enable Export Address Filtering (EAF) bypass (default false)
+  -RdllLoader string
+        Rdll Loader Options:
+        [*] PrependLoader (default)
+        [*] StompLoader (Older method)
+  -RdllUseSyscalls
+        Use Syscalls for Rdll operations (default false)
+  -SmartInject
+        Enable Smart Inject - uses embedded function pointer hints to bootstrap without walking kernel32 EAT (default false)
+  -SleepMask
+        Enable Sleep Mask - obfuscates beacon in memory while sleeping (default true)
+  -TransformObfuscate string
+        Transform obfuscate options (comma-separated list):
+        [*] lznt1
+        [*] rc4 "64"
+        [*] xor "32"
+        [*] base64
+        Example: "lznt1,rc4 \"64\",xor \"32\",base64"
+  -CheckinDelay string
+        Delay in milliseconds before Beacon's initial check-in (CS 4.13+ - breaks event correlation on reflective load)
+  -ClientMaxPostPostSize string
+        Maximum size in bytes of POST body (CS 4.13+ - bypass DLP solutions)
+  -ClientMaxPostGetSize string
+        Maximum size in bytes of chunked data when posting via a GET header (CS 4.13+ - bypass DLP solutions)
   -Uri string
         The number URIs a profile for beacons to choose from
   -Useragent string
@@ -172,6 +199,7 @@ Usage of ./SourcePoint:
         [*] Win10Chrome
         [*] Win10Edge
         [*] Win10IE
+        [*] Win10Firefox
         [*] Win10
         [*] Win6.3
         [*] Linux
@@ -204,6 +232,9 @@ This part of your profile modifies how the beacon operators. Some of the feature
 * SSH Banner - The SSH banner used
 * SSH Pipename - The name used for the SSH banner
 * HttpLib - The library attribute allows the user to specify the default library used by the generated beacons used by the profile. The value can be "wininet" or "winhttp"
+* Checkin Delay - Delays Beacon's initial check-in to break event-correlation heuristics on reflective load + the immediate metadata exchange (CS 4.13+)
+* Client Max Post Post Size - Caps max POST body size to bypass DLP solutions (CS 4.13+)
+* Client Max Post Get Size - Controls chunked data size when Beacon posts via a GET header to bypass DLP solutions (CS 4.13+)
 
 ### Stage
 This part of your profile controls how beacon is loaded into memory and edit the content of the beacon DLL. Some of the features used to modify the behaviour are:
@@ -218,8 +249,12 @@ This part of your profile controls how beacon is loaded into memory and edit the
 * Smart Inject - Uses embedded function pointer hints to bootstrap the beacon agent without walking kernel32 EAT
 * Sleep Mask - TCP and SMB beacons will obfuscate themselves at rest while they wait for the connection to be established
 * PE Header - Changes the characteristics of your beacon Reflective DLL to look like something else in memory
-* Transformation - Transform beacon's Reflective DLL stage by removing or adding strings to the .rdata
-* RDLL Driploading - Gradually loads the beacon RDLL in smaller chunks with configurable delays to evade memory-based detection (default: enabled with random 100-200ms delay) 
+* Copy PE Header - Copies the PE header from the cloned DLL to more closely match it in memory
+* Transformation - Transform beacon's Reflective DLL stage by removing or adding strings to the .rdata, supports lznt1, rc4, xor, and base64 encoding
+* EAF Bypass - Bypasses Export Address Filtering, a mitigation that monitors access to the export address table of critical DLLs
+* RDLL Use Syscalls - Uses direct/indirect syscalls for the Reflective DLL Loader operations
+* RDLL Loader - Choose between PrependLoader (default) and StompLoader (older method) for the Reflective DLL Loader
+* RDLL Driploading - Gradually loads the beacon RDLL in smaller chunks with configurable delays to evade memory-based detection (default: enabled with random 100-200ms delay)
 
 
 ### Process-Inject
@@ -298,6 +333,14 @@ ProfilePath:
 Syscall_method:
 Httplib:
 ThreadSpoof: true
+BeaconGate:
+EafBypass: false
+RdllUseSyscalls: false
+CopyPEHeader: false
+RdllLoader: "PrependLoader"
+TransformObfuscate:
+SmartInject: false
+SleepMask: true
 Customuri: 
 CustomuriGET: 
 CustomuriPOST:
@@ -309,6 +352,9 @@ RdllUseDriploading: true
 RdllDriploadDelay: "" # Leave empty for random 100-200ms delay
 UseDriploading: true
 DriploadDelay: "" # Leave empty for random 100-200ms delay
+CheckinDelay: "" # ms; leave empty to omit (CS 4.13+)
+ClientMaxPostPostSize: "" # bytes; leave empty to omit (CS 4.13+ DLP bypass)
+ClientMaxPostGetSize: "" # bytes; leave empty to omit (CS 4.13+ DLP bypass)
 ```
 
 
